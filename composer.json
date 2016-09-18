@@ -1,0 +1,34 @@
+{
+  "name": "whiskyjs/objectify",
+  "description": "Ruby-inspired object-oriented wrapper over builtin PHP types",
+  "authors": [
+    {
+      "name": "whiskyjs",
+      "email": "whiskyjs@tuta.io",
+      "role": "Developer"
+    }
+  ],
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": ">=5.6"
+  },
+  "require-dev": {
+    "php": ">=5.6",
+    "phpunit/phpunit": "3.7.*"
+  },
+  "autoload": {
+    "psr-4": {
+      "whiskyjs\\objectify\\": "src/objectify/"
+    },
+    "files": [
+      "src/autoload.php"
+    ],
+    "exclude-from-classmap": [
+      "/tests/"
+    ]
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}
