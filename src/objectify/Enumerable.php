@@ -227,7 +227,7 @@ trait Enumerable {
             }
         }
 
-        return $ary;
+        return new static($ary);
     }
 
     /**
@@ -516,7 +516,7 @@ trait Enumerable {
      * @return static
      */
     public function arsort($mode = null) {
-        return new static($this->_sort(null, $mode | self::$PRESERVE_KEYS | Enumerable::$REVERSE));
+        return $this->_sort(null, $mode | self::$PRESERVE_KEYS | Enumerable::$REVERSE);
     }
 
     /**
@@ -572,7 +572,7 @@ trait Enumerable {
      * @return static
      */
     public function asort($lambda = null, $mode = null) {
-        return new static($this->_sort($lambda, $mode | self::$PRESERVE_KEYS));
+        return $this->_sort($lambda, $mode | self::$PRESERVE_KEYS);
     }
 
     /**
@@ -1293,7 +1293,7 @@ trait Enumerable {
      * @return static
      */
     public function krsort($mode = null) {
-        return new static($this->_sort(null, $mode | Enumerable::$BY_KEYS | Enumerable::$REVERSE));
+        return $this->_sort(null, $mode | Enumerable::$BY_KEYS | Enumerable::$REVERSE);
     }
 
     /**
@@ -1304,7 +1304,7 @@ trait Enumerable {
      * @return static
      */
     public function ksort($lambda = null, $mode = null) {
-        return new static($this->_sort($lambda, $mode | Enumerable::$BY_KEYS));
+        return $this->_sort($lambda, $mode | Enumerable::$BY_KEYS);
     }
 
     /**
@@ -1484,7 +1484,7 @@ trait Enumerable {
      * @return static
      */
     public function rsort($mode = null) {
-        return new static($this->_sort(null, $mode | Enumerable::$REVERSE));
+        return $this->_sort(null, $mode | Enumerable::$REVERSE);
     }
 
     /**
@@ -1532,7 +1532,7 @@ trait Enumerable {
      * @return static
      */
     public function sort($lambda = null, $mode = null) {
-        return new static($this->_sort($lambda, $mode));
+        return $this->_sort($lambda, $mode);
     }
 
     /**
