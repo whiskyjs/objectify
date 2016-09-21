@@ -1,3 +1,5 @@
+sudo: required
+dist: trusty
 language: php
 
 php:
@@ -5,11 +7,12 @@ php:
   - '7.0'
   - nightly
   - hhvm-3.12
-  - hhvm-nightly
+  - hhvm-3.15
 
 matrix:
     allow_failures:
-        - php: hhvm
+        - php: hhvm-3.12
+        - php: hhvm-3.15
 
 install: composer install
 
