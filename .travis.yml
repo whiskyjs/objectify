@@ -4,7 +4,8 @@ php:
   - '5.6'
   - '7.0'
   - nightly
-  - hhvm
+  - hhvm-3.12
+  - hhvm-nightly
 
 matrix:
     allow_failures:
