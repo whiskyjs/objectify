@@ -1,5 +1,6 @@
 [![Build Status](http://img.shields.io/travis/whiskyjs/objectify.svg?style=flat-square)](https://travis-ci.org/whiskyjs/objectify)
 [![Dependency Status](http://img.shields.io/gemnasium/whiskyjs/objectify.svg?style=flat-square)](https://gemnasium.com/whiskyjs/objectify)
+[![Code Coverage](https://img.shields.io/codecov/c/github/whiskyjs/objectify.svg?style=flat-square)](https://codecov.io/gh/whiskyjs/objectify)
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
 
 # objectify
