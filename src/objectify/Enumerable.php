@@ -45,8 +45,10 @@ trait Enumerable {
         return new static(function() use ($lambda, $include, $mode) {
             $fn = self::create_lambda($lambda);
 
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     $fn_result = $fn($v, $k, $i);
 
@@ -62,8 +64,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         });
     }
@@ -83,8 +83,10 @@ trait Enumerable {
                 $limit = 1;
             }
 
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     if ($counter >= $limit) {
                         break;
@@ -98,13 +100,12 @@ trait Enumerable {
                         }
                         $counter++;
                     }
+                // TODO: Cover with tests if $lambda functionality is public
                 } catch (Stop $e) {
                     break;
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         };
     }
@@ -117,8 +118,10 @@ trait Enumerable {
                 $fn = null;
             }
 
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     $is_rx_match = self::matches($pattern, $v);
                     $is_match =  $is_rx_match && (!$fn || $fn && $fn($v, $k, $i));
@@ -136,8 +139,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         });
     }
@@ -151,8 +152,10 @@ trait Enumerable {
             }
 
             $acc = [];
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     $result = $fn ? $fn($v, $k, $i) : self::matches($pattern_or_lambda, $v);
 
@@ -176,8 +179,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
 
             if ($acc) {
@@ -187,6 +188,7 @@ trait Enumerable {
     }
 
     protected function _sort($lambda = null, $mode = null) {
+        /** @noinspection PhpParamsInspection */
         $ary = iterator_to_array($this);
 
         if (!$lambda) {
@@ -368,7 +370,7 @@ trait Enumerable {
      * Traverses the collection and yields elements whose string value matches the regular expression $pattern.
      * If $lambda is provided, it also must return truthy value for an element to be yielded.
      *
-     * Preserves keys in associative arrays.
+     * Preserves keys in associative collections.
      *
      * @param string $pattern
      * @param null|callable|string $lambda ($v, $k, $i)
@@ -383,7 +385,7 @@ trait Enumerable {
      * Traverses the collection and yields elements whose string value does not match the regular expression $pattern.
      * If $lambda is provided, it also must return truthy value for an element to be skipped.
      *
-     * Preserves keys in associative arrays.
+     * Preserves keys in associative collections.
      *
      * @param string $pattern
      * @param null|callable|string $lambda ($v, $k, $i)
@@ -411,8 +413,10 @@ trait Enumerable {
 
         $acc = true;
 
-        $i = 0;
+        $i = -1;
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
                 $acc = $acc && (isset($fn) ? $fn($v, $k, $i) : $v);
 
@@ -424,8 +428,6 @@ trait Enumerable {
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
 
         return $acc;
@@ -461,8 +463,10 @@ trait Enumerable {
 
         $acc = false;
 
-        $i = 0;
+        $i = -1;
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
                 if ($fn && $fn($v, $k, $i) || (!$fn && $v)) {
                     $acc = true;
@@ -473,8 +477,6 @@ trait Enumerable {
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
 
         return $acc;
@@ -508,7 +510,7 @@ trait Enumerable {
     }
 
     /**
-     * Sorts the collection by reverse natural order
+     * Sorts the collection by reverse natural order.
      * <br><br>
      * Preserves keys in associative collections.
      *
@@ -537,7 +539,7 @@ trait Enumerable {
      * If $pattern_or_lambda is a lambda and it returns truthy value, or is a pattern and it
      * matches the element's string value, the current element will be last in a chunk.
      *
-     * Preserves keys in associative araays.
+     * Preserves keys in associative collections.
      *
      * @param string|callable $pattern_or_lambda ($v, $k, $i)
      * @param null|int $mode
@@ -552,7 +554,7 @@ trait Enumerable {
      * If $pattern_or_lambda is a lambda and it returns truthy value, or is a pattern and it
      * matches the element's string value, the current element will be first in a next chunk.
      *
-     * Preserves keys in associative arrays.
+     * Preserves keys in associative collections.
      *
      * @param string|callable $pattern_or_lambda ($v, $k, $i)
      * @param null|int $mode
@@ -628,8 +630,10 @@ trait Enumerable {
 
             $acc = [];
             $prev_result = null;
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     $result = $fn($v, $k, $i);
 
@@ -647,8 +651,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
 
             if ($acc) {
@@ -674,8 +676,10 @@ trait Enumerable {
 
             $acc = [];
             $prev_element = null;
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     if ($i > 0 && !$fn($prev_element[0], $v, $prev_element[1], $k, $i)) {
                         yield $acc;
@@ -689,8 +693,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
 
             if ($acc) {
@@ -744,8 +746,10 @@ trait Enumerable {
 
             $fn = self::create_lambda($value_or_lambda);
 
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     if ($fn($v, $k, $i)) {
                         $counter++;
@@ -755,8 +759,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         } else {
             foreach ($this as $k => $v) {
@@ -798,8 +800,10 @@ trait Enumerable {
 
         $cache = [];
         for ($j = 0; isset($n) ? $j < $n : true; $j++) {
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     if ($j === 0) {
                         $cache[] = [$v, $k];
@@ -812,8 +816,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         }
     }
@@ -867,28 +869,29 @@ trait Enumerable {
         return new static(function() use ($lambda, $mode) {
             $fn = self::create_lambda($lambda);
 
-            $i = 0;
+            $i = -1;
             $stop_dropping = false;
             foreach ($this as $k => $v) {
+                $i++;
+                $leave_current = false;
+
                 try {
                     if (!$stop_dropping) {
                         $stop_dropping = !$fn($v, $k, $i);
                     }
-
-                    if ($stop_dropping) {
-                        if (!($mode & self::$PRESERVE_KEYS)) {
-                            yield $v;
-                        } else {
-                            yield $k => $v;
-                        }
-                    }
                 } catch (Stop $e) {
-                    break;
+                    $stop_dropping = true;
                 } catch (Next $e) {
-                    continue;
+                    $leave_current = true;
                 }
 
-                $i++;
+                if ($stop_dropping || $leave_current) {
+                    if (!($mode & self::$PRESERVE_KEYS)) {
+                        yield $v;
+                    } else {
+                        yield $k => $v;
+                    }
+                }
             }
         });
     }
@@ -901,8 +904,10 @@ trait Enumerable {
     public function each($lambda) {
         $fn = self::create_lambda($lambda, false);
 
-        $i = 0;
+        $i = -1;
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
                 $fn($v, $k, $i);
             } catch (Stop $e) {
@@ -910,8 +915,6 @@ trait Enumerable {
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
     }
 
@@ -932,18 +935,20 @@ trait Enumerable {
                 if (count($acc) < $n) {
                     self::add($v, $k, $acc, $mode);
                 } else {
-                    $fn($acc, $i++);
+                    $fn($acc, $i);
+                    $i++;
                     self::add($v, $k, $acc, $mode);
                     array_splice($acc, 0, 1);
                 }
             } catch (Stop $e) {
                 break;
             } catch (Next $e) {
-                continue;
+                array_splice($acc, 0, 1);
+                self::add($v, $k, $acc, $mode);
             }
         }
 
-        if ($acc) {
+        if ($acc && !(isset($e) && ($e instanceof Stop))) {
             $fn($acc, $i);
         }
     }
@@ -974,18 +979,19 @@ trait Enumerable {
                 if (count($acc) < $n) {
                     self::add($v, $k, $acc, $mode);
                 } else {
-                    $fn($acc, $i++);
+                    $fn($acc, $i);
+                    $i++;
                     $acc = [];
                     self::add($v, $k, $acc, $mode);
                 }
             } catch (Stop $e) {
                 break;
             } catch (Next $e) {
-                continue;
+                $acc = [$v];
             }
         }
 
-        if ($acc) {
+        if ($acc && !(isset($e) && ($e instanceof Stop))) {
             $fn($acc, $i);
         }
     }
@@ -1004,23 +1010,23 @@ trait Enumerable {
      * and returns the initially given object.
      *
      * @param mixed $object
-     * @param callable|string $lambda ($v, $k, $i)
+     * @param callable|string $lambda ($v, $o, $k, $i)
      * @return mixed
      */
     public function each_with_object($object, $lambda) {
-        $fn = self::create_lambda($lambda, false, '$v, $k, $i, $o');
+        $fn = self::create_lambda($lambda, false, '$v, $o, $k, $i');
 
-        $i = 0;
+        $i = -1;
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
-                $fn($v, $k, $i, $object);
+                $fn($v, $object, $k, $i);
             } catch (Stop $e) {
                 break;
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
 
         return $object;
@@ -1040,8 +1046,10 @@ trait Enumerable {
 
         $result = null;
 
-        $i = 0;
+        $i = -1;
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
                 if ($fn($v, $k, $i)) {
                     if (!($mode & self::$PRESERVE_KEYS)) {
@@ -1057,8 +1065,6 @@ trait Enumerable {
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
 
         return isset($result) ? WDispatcher::wrap($result) : $if_none;
@@ -1089,8 +1095,10 @@ trait Enumerable {
         if (is_callable($value_or_lambda) || is_string($value_or_lambda) && ($mode & Enumerable::$ENABLE_EVAL)) {
             $fn = self::create_lambda($value_or_lambda);
 
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     if ($fn($v, $k, $i)) {
                         return $k;
@@ -1100,8 +1108,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         } else {
             foreach ($this as $k => $v) {
@@ -1128,9 +1134,7 @@ trait Enumerable {
     }
 
     /**
-     * If $n is specified, returns first $n elements in collection for which $lambda returns a truthy value.
-     * Otherwise returns value of the first matching element, or array with its value and key,
-     * if self::$PRESERVE_KEYS flag is set.
+     * Returns first $n elements in collection.
      * If none matching are found, returns null
      *
      * @param null|int $n
@@ -1171,8 +1175,10 @@ trait Enumerable {
         return new static(function() use ($lambda, $mode) {
             $fn = self::create_lambda($lambda);
 
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     $resultAry = $fn($v, $k, $i);
 
@@ -1188,8 +1194,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         });
     }
@@ -1222,7 +1226,7 @@ trait Enumerable {
 
     /**
      * Groups the collection by result of the $lambda.
-     * Returns an associative array where the keys are the evaluated result from the $lambda and the values
+     * Returns an associative collection where the keys are the evaluated result from the $lambda and the values
      * are arrays of elements in the collection that correspond to the key.
      *
      * @param callable|string $lambda ($v, $k, $i)
@@ -1233,8 +1237,10 @@ trait Enumerable {
         $fn = self::create_lambda($lambda);
 
         $acc = [];
-        $i = 0;
+        $i = -1;
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
                 $result = $fn($v, $k, $i);
 
@@ -1248,8 +1254,6 @@ trait Enumerable {
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
 
         return new static($acc);
@@ -1267,7 +1271,6 @@ trait Enumerable {
         foreach ($this as $k => $v) {
             if ($v === $value) {
                 $result = true;
-
                 break;
             }
         }
@@ -1287,7 +1290,7 @@ trait Enumerable {
     }
 
     /**
-     * Sorts the collection by natural order of keys
+     * Sorts the collection by natural order of keys.
      *
      * @param null|int $mode
      * @return static
@@ -1297,7 +1300,7 @@ trait Enumerable {
     }
 
     /**
-     * Sorts the collection by natural order of keys
+     * Sorts the collection by natural order of keys.
      *
      * @param null|callable|string $lambda ($k1, $k2)
      * @param null|int $mode
@@ -1318,8 +1321,10 @@ trait Enumerable {
         return new static(function() use ($lambda, $mode) {
             $fn = self::create_lambda($lambda);
 
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     $result = $fn($v, $k, $i);
 
@@ -1346,8 +1351,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         });
     }
@@ -1387,9 +1390,11 @@ trait Enumerable {
             $fn = null;
         }
 
-        $i = 0;
+        $i = -1;
         $counter = 0;
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
                 if ($fn && $fn($v, $k, $i) || !$fn && $v) {
                     $counter++;
@@ -1399,8 +1404,6 @@ trait Enumerable {
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
 
         return $counter === 1;
@@ -1417,9 +1420,11 @@ trait Enumerable {
     public function partition($lambda, $mode = null) {
         $fn = self::create_lambda($lambda);
 
-        $i = 0;
+        $i = -1;
         $result = [[], []];
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
                 if ($fn($v, $k, $i)) {
                     self::add($v, $k, $result[0], $mode);
@@ -1431,8 +1436,6 @@ trait Enumerable {
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
 
         return new static($result);
@@ -1450,8 +1453,10 @@ trait Enumerable {
 
         $acc = $init_value;
 
-        $i = 0;
+        $i = -1;
         foreach ($this as $k => $v) {
+            $i++;
+
             try {
                 $acc = $fn($v, $acc, $k, $i);
             } catch (Stop $e) {
@@ -1459,8 +1464,6 @@ trait Enumerable {
             } catch (Next $e) {
                 continue;
             }
-
-            $i++;
         }
 
         return WDispatcher::wrap($acc);
@@ -1573,8 +1576,10 @@ trait Enumerable {
         return new static(function() use ($lambda, $mode) {
             $fn = self::create_lambda($lambda);
 
-            $i = 0;
+            $i = -1;
             foreach ($this as $k => $v) {
+                $i++;
+
                 try {
                     if ($fn($v, $k, $i)) {
                         if (!($mode & self::$PRESERVE_KEYS)) {
@@ -1590,8 +1595,6 @@ trait Enumerable {
                 } catch (Next $e) {
                     continue;
                 }
-
-                $i++;
             }
         });
     }

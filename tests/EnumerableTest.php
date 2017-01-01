@@ -264,6 +264,27 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[1, 2, 3, 4, 5], true, [function($v, $k, $i) {
                 return $i > -1;
             }]],
+            [[1, 4, 5, 8], true, [function($v, $k, $i) {
+                if ($i === 3) {
+                    throw new Stop();
+                }
+
+                return $v < 8;
+            }]],
+            [[2, 4, 5, 6], true, [function($v, $k, $i) {
+                static $prev_i = [];
+
+                if ($i == 2) {
+                    throw new Next();
+                }
+
+                if (in_array($i, $prev_i)) {
+                    throw new \LogicException();
+                } else {
+                    $prev_i[] = $i;
+                    return $v % 2 == 0;
+                }
+            }]],
         ];
     }
 
@@ -275,6 +296,27 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[1, 2, 3, 4, 5], false, ['$v > 6']],
             [[1, 2, 3, 4, 5], true, [function($v, $k, $i) {
                 return ($i === 3) && ($v === 4);
+            }]],
+            [[1, 4, 5, 8], false, [function($v, $k, $i) {
+                if ($i === 3) {
+                    throw new Stop();
+                }
+
+                return $v === 8;
+            }]],
+            [[2, 4, 5, 6], false, [function($v, $k, $i) {
+                static $prev_i = [];
+
+                if ($i == 2) {
+                    throw new Next();
+                }
+
+                if (in_array($i, $prev_i)) {
+                    throw new \LogicException();
+                } else {
+                    $prev_i[] = $i;
+                    return $v === 5;
+                }
             }]],
         ];
     }
@@ -309,6 +351,44 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
                 ],
                 ['$k === "B" ? null : $v > 2', Enumerable::$PRESERVE_KEYS]
             ],
+            [
+                [1, 2, 5, 8],
+                [
+                    [1, [1]],
+                    [0, [2]],
+                ],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return $v % 2;
+                    }
+                ]
+            ],
+            [
+                [2, 4, 5, 8],
+                [
+                    [0, [2, 4, 8]],
+                ],
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i == 2) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v % 2;
+                        }
+                    }
+                ],
+            ],
         ];
     }
 
@@ -319,6 +399,43 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[1, 2], [[1], [2]], ["false"]],
             [[2, 43, 6, 7, 44, 13], [[2, 43], [6, 7, 44], [13]], ['$v2 > $v1']],
             [['A' => -1, 'B' => 2, 'C' => 3], [[-1], [2, 3]], ['$v1 + 1 === $v2']],
+            [
+                [1, 2, 5, 8],
+                [
+                    [1, 2]
+                ],
+                [
+                    function($v1, $v2, $k1, $k2, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return $v1 < 3;
+                    }
+                ]
+            ],
+            [
+                [2, 4, 5, 8],
+                [
+                    [2, 4, 8]
+                ],
+                [
+                    function($v1, $v2, $k1, $k2, $i) {
+                        static $prev_i = [];
+
+                        if ($i == 2) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v1 % 2 === 0;
+                        }
+                    }
+                ],
+            ],
         ];
     }
 
@@ -336,6 +453,27 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[1, 2, 3, 2, 7, 3], 2, [3]],
             [[1, 2, 3, 4, 5], 2, ['!($v % 2)', Enumerable::$ENABLE_EVAL]],
             [['T', 'A', 'C', 'B', 'A'], 2, ['A']],
+            [[1, 5, 5, 8], 1, [function($v, $k, $i) {
+                if ($i === 2) {
+                    throw new Stop();
+                }
+
+                return $v === 5;
+            }]],
+            [[2, 5, 8, 5], 2, [function($v, $k, $i) {
+                static $prev_i = [];
+
+                if ($i == 2) {
+                    throw new Next();
+                }
+
+                if (in_array($i, $prev_i)) {
+                    throw new \LogicException();
+                } else {
+                    $prev_i[] = $i;
+                    return $v === 5;
+                }
+            }]],
         ];
     }
 
@@ -366,6 +504,42 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
                 ],
                 [2]
             ],
+            [
+                [1, 4, 5, 8],
+                [
+                    [1, 0, 0],
+                    [4, 1, 1],
+                    [1, 0, 0],
+                    [4, 1, 1],
+                ],
+                [
+                    2,
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+                    }
+                ]
+            ],
+            [
+                [2, 4, 5, 6],
+                [
+                    [2, 0, 0],
+                    [4, 1, 1],
+                    [6, 3, 3],
+                    [2, 0, 0],
+                    [4, 1, 1],
+                    [6, 3, 3],
+                ],
+                [
+                    2,
+                    function($v, $k, $i) {
+                        if ($i == 2) {
+                            throw new Next();
+                        }
+                    }
+                ]
+            ],
         ];
     }
 
@@ -383,6 +557,34 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[5, 7, 8, 13], [5, 7, 8, 13], ["null"]],
             [[5, 7, 8, 13], [8, 13], ['$v % 2']],
             [[5, 7, 8, 13], [5, 7, 8, 13], ['$v < 4']],
+            [[5, 7, 9, 11, 8, 12], [9, 11, 8, 12], [function($v, $k, $i) {
+                static $prev_i = [];
+
+                if ($i === 2) {
+                    throw new Stop();
+                }
+
+                if ($prev_i === $i) {
+                    return false;
+                } else {
+                    $prev_i = $i;
+                    return $v % 2;
+                }
+            }]],
+            [[5, 7, 9, 11, 8, 12], [7, 8, 12], [function($v, $k, $i) {
+                static $prev_i = [];
+
+                if ($i === 1) {
+                    throw new Next();
+                }
+
+                if (in_array($i, $prev_i)) {
+                    throw new \LogicException();
+                } else {
+                    $prev_i[] = $i;
+                    return $v % 2;
+                }
+            }]],
         ];
     }
 
@@ -390,6 +592,72 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
         return [
             [[], [], []],
             [['A' => 4, 'B' => 5], [[4, 'A', 0], [5, 'B', 1]], []],
+            [
+                [1, 2, 5, 6],
+                [
+                    [1, 0, 0],
+                    [2, 1, 1],
+                ],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+                    }
+                ]
+            ],
+            [
+                [1, 2, 5, 6],
+                [
+                    [1, 0, 0],
+                    [2, 1, 1],
+                    [6, 3, 3],
+                ],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Next();
+                        }
+                    }
+                ]
+            ]
+        ];
+    }
+
+    function caseProviderEachGlobals() {
+        return [
+            [[], [], []],
+            [['A' => 4, 'B' => 5], [[4, 'A', 0], [5, 'B', 1]], []],
+            [
+                [1, 2, 5, 6],
+                [
+                    [1, 0, 0],
+                    [2, 1, 1],
+                ],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+                    }
+                ]
+            ],
+            [
+                [1, 2, 5, 6],
+                [
+                    [1, 0, 0],
+                    [2, 1, 1],
+                    [6, 3, 3],
+                ],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Next();
+                        }
+                    }
+                ]
+            ],
+            [['A' => 4, 'B' => 5], [[4, 'A', 0], [5, 'B', 1]], ['if (($i > 0) && ($GLOBALS[\'caseResult\'][$i - 1][2] !== $i - 1)) throw new \LogicException();']],
         ];
     }
 
@@ -406,6 +674,43 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
                 [1, 2, 3],
                 [[[1, 2], 0], [[2, 3], 1]],
                 [2]
+            ],
+            [
+                [1, 2, 3, 5, 6],
+                [
+                    [[1, 2], 0],
+                    [[2, 3], 1],
+                ],
+                [2, function($v, $i) {
+                    if ($i === 2) {
+                        throw new Stop();
+                    }
+                }]
+            ],
+            [
+                [1, 2, 3, 5, 6],
+                [
+                    [[1, 2], 0],
+                    [[2, 3], 1],
+                ],
+                [2, function($v, $i) {
+                    if ($v === [3, 5]) {
+                        throw new Stop();
+                    }
+                }]
+            ],
+            [
+                [1, 2, 3, 5, 6],
+                [
+                    [[1, 2], 0],
+                    [[2, 3], 1],
+                    [[5, 6], 2],
+                ],
+                [2, function($v, $i) {
+                    if ($v === [3, 5]) {
+                        throw new Next();
+                    }
+                }]
             ],
         ];
     }
@@ -429,13 +734,67 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
                 [[[1, 2, 3], 0]],
                 [5]
             ],
+            [
+                [1, 2, 3, 5, 6],
+                [
+                    [[1, 2], 0],
+                ],
+                [2, function($v, $i) {
+                    if ($v === [3, 5]) {
+                        throw new Stop();
+                    }
+                }]
+            ],
+            [
+                [1, 2, 3, 5, 6],
+                [
+                    [[1, 2], 0],
+                    [[6], 1],
+                ],
+                [2, function($v, $i) {
+                    if ($v === [3, 5]) {
+                        throw new Next();
+                    }
+                }]
+            ],
         ];
     }
 
     function caseProviderEachWithObject() {
         return [
             [[], [], ["object"]],
-            [['A' => 4, 'B' => 5], [[4, 'A', 0, "object"], [5, 'B', 1, "object"]], ["object"]],
+            [['A' => 4, 'B' => 5], [[4, "object", 'A', 0], [5, "object", 'B', 1]], ["object"]],
+            [
+                [1, 4, 6, 2],
+                [
+                    [1, "object", 0, 0],
+                    [4, "object", 1, 1],
+                    [2, "object", 3, 3],
+                ],
+                [
+                    "object",
+                    function($v, $o, $k, $i) {
+                        if ($i === 2) {
+                            throw new Next();
+                        }
+                    }
+                ]
+            ],
+            [
+                [1, 4, 6, 2],
+                [
+                    [1, "object", 0, 0],
+                    [4, "object", 1, 1],
+                ],
+                [
+                    "object",
+                    function($v, $o, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+                    }
+                ]
+            ]
         ];
     }
 
@@ -444,6 +803,39 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[], null, ['$v == 2']],
             [[1, 2, 3, 4, 5], 4, ['$k === 3']],
             [[1, 2, 3, 4, 5], null, ['$k === 8']],
+            [
+                [1, 5, 3, 12, 91],
+                null,
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return $v === 91;
+                    }
+                ]
+            ],
+            [
+                [1, 5, 3, 12, 91],
+                null,
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 1) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v === 5;
+                        }
+                    }
+                ]
+            ],
         ];
     }
 
@@ -454,8 +846,43 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [['A' => 1, 'C' => 3, 'E' => 5], 'C', [3]],
             [['A' => 'one', 'C' => 'three', 'E' => 'five'], 'C', ["three"]],
             [['A' => 'one', 'C' => 'three', 'E' => 'five'], 'E', ['$v === "five"', Enumerable::$ENABLE_EVAL]],
-            [['A' => 'one', 'C' => 'three', 'E' => 'five'], 'E', [function($v) { return $v === "five"; }]],
+            [['A' => 'one', 'C' => 'three', 'E' => 'five'], 'E', [function($v) {
+                return $v === "five";
+            }]],
             [['A' => 'one', 'C' => 'three', 'E' => 'five'], null, ['$v === "nine"']],
+            [
+                [1, 5, 3, 12, 91],
+                null,
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return $v === 91;
+                    }
+                ]
+            ],
+            [
+                [1, 5, 3, 12, 91],
+                null,
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 1) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v === 5;
+                        }
+                    }
+                ]
+            ],
         ];
     }
 
@@ -466,7 +893,9 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [['A' => 1, 'C' => 3, 'E' => 5], 'C', [3]],
             [['A' => 'one', 'C' => 'three', 'E' => 'five'], 'A', ["'three'"]],
             [['A' => 'one', 'C' => 'three', 'E' => 'five'], 'E', ['$v === "five"']],
-            [['A' => 'one', 'C' => 'three', 'E' => 'five'], 'E', [function($v) { return $v === "five"; }]],
+            [['A' => 'one', 'C' => 'three', 'E' => 'five'], 'E', [function($v) {
+                return $v === "five";
+            }]],
             [['A' => 'one', 'C' => 'three', 'E' => 'five'], null, ['$v === "nine"']],
         ];
     }
@@ -475,6 +904,7 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
         return [
             [[], null, []],
             [[1, 2, 3, 4, 5], 1, []],
+            [[1, 2, 3, 4, 5], [1, 2, 3], [3]],
             [[1, 2, 3, 4, 5], [1, 2, 3], [3]],
         ];
     }
@@ -485,16 +915,84 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[1, 2, 3], [2, 0, 4, 4, 6, 8], ['[$v * 2, $k * 4]']],
             [[1, 2, 3], [-1, 0, 1], ['[$k - 1]']],
             [[1, 2, 3], ['00', '11', '22'], ['[$i . $i]']],
+            [
+                [1, 12, 3, 7, 6],
+                ['001', '1112'],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return [$i . $k . $v];
+                    }
+                ]
+            ],
+            [
+                [1, 12, 3, 7, 6],
+                ['001', '1112', '337', '446'],
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 2) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return [$i . $k . $v];
+                        }
+                    }
+                ]
+            ],
         ];
     }
 
     function caseProviderGrep() {
-    return [
-        [[], [], [null]],
-        [[12, 23, 34, 14, 50], [12, 34, 14], ['^[13]']],
-        [[12, 23, 34, 14, 50], [34], ['^[13]', '$v > 30']],
-    ];
-}
+        return [
+            [[], [], [null]],
+            [[12, 23, 34, 14, 50], [12, 34, 14], ['^[13]']],
+            [[12, 23, 34, 14, 50], [34], ['^[13]', '$v > 30']],
+            [
+                [12, 23, 34, 50, 24],
+                [23],
+                [
+                    '^[123]',
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return $v > 20;
+                    }
+                ]
+            ],
+            [
+                [12, 23, 34, 50, 24],
+                [23, 24],
+                [
+                    '^[123]',
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 2) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v > 20;
+                        }
+                    }
+                ]
+            ],
+        ];
+    }
 
     function caseProviderGrepV() {
         return [
@@ -508,9 +1006,53 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
         return [
             [[], [], [null]],
             [['A' => 1, 'C' => 3, 'F' => 6], [1 => [1, 3], 0 => [6]], ['$v % 2']],
-            [['A' => 1, 'C' => 3, 'F' => 6], [1 => [1, 3], 0 => [6]], [function($v) { return $v % 2; }]],
+            [['A' => 1, 'C' => 3, 'F' => 6], [1 => [1, 3], 0 => [6]], [function($v) {
+                return $v % 2;
+            }]],
             [['A' => 1, 'C' => 3, 'F' => 6], [1 => ['A' => 1, 'C' => 3], 0 => ['F' => 6]],
-                [function($v) { return $v % 2; }, Enumerable::$PRESERVE_KEYS]],
+                [function($v) {
+                    return $v % 2;
+                }, Enumerable::$PRESERVE_KEYS]
+            ],
+            [
+                [5, 2, 12, 8, 13],
+                [
+                    1 => [5],
+                    0 => [2, 12],
+                ],
+                [
+                    function($v, $k, $i) {
+                        if ($i == 3) {
+                            throw new Stop();
+                        }
+
+                        return $v % 2;
+                    }
+                ]
+            ],
+            [
+                [5, 2, 12, 8, 13],
+                [
+                    1 => [5, 13],
+                    0 => [2, 12],
+                ],
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i == 3) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v % 2;
+                        }
+                    }
+                ]
+            ]
         ];
     }
 
@@ -569,6 +1111,39 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [['A' => 1, 'B' => 2, 'C' => 3], ['A' => 'A', 'B' => 'B', 'C' => 'C'], ['[$k, $v]',
                 Enumerable::$VALUES_ONLY]],
             [['A' => 1, 'B' => 2, 'C' => 3], [1 => 1, 2 => 2, 3 => 3], ['[$k, $v]', Enumerable::$KEYS_ONLY]],
+            [
+                [3, 5, 2, 7, 12],
+                [6, 10, 4],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 3) {
+                            throw new Stop();
+                        }
+
+                        return $v * 2;
+                    }
+                ]
+            ],
+            [
+                [3, 5, 2, 7, 12],
+                [6, 10, 4, 24],
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 3) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v * 2;
+                        }
+                    }
+                ]
+            ]
         ];
     }
 
@@ -588,6 +1163,39 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[1, 2, 4], false, ['$v === 3']],
             [[1, 2, 3], true, ['$v === 3']],
             [[1, 2, 3, 3], false, ['$v === 3']],
+            [
+                [6, 5, 12, 11, 7],
+                false,
+                [
+                    function ($v, $k, $i) {
+                        if ($i === 3) {
+                            throw new Stop();
+                        }
+
+                        return $v === 7;
+                    }
+                ]
+            ],
+            [
+                [6, 5, 12, 11, 7],
+                false,
+                [
+                    function ($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 3) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v === 11;
+                        }
+                    }
+                ]
+            ]
         ];
     }
 
@@ -596,6 +1204,45 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[], [[], []], [null]],
             [[1, 2, 3, 4], [[1, 3], [2, 4]], ['$v % 2']],
             [[1, 2, 3, 4], [[1, 2 => 3], [1 => 2, 3 => 4]], ['$v % 2', Enumerable::$PRESERVE_KEYS]],
+            [
+                [1, 2, 3, 4],
+                [
+                    [1],
+                    [2, 4]
+                ],
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 2) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v % 2;
+                        }
+                    }
+                ]
+            ],
+            [
+                [1, 2, 3, 4],
+                [
+                    [1],
+                    [2]
+                ],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return $v % 2;
+                    }
+                ]
+            ]
         ];
     }
 
@@ -617,6 +1264,41 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[], 0, [0, null]],
             [[1, 2, 3], 6, [0, '$a + $v']],
             [[1, 2, 3], 3, [0, null]],
+            [
+                [4, 3, 56, 1],
+                "43",
+                [
+                    "",
+                    function ($v, $a, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return $a . $v;
+                    }
+                ]
+            ],
+            [
+                [4, 3, 56, 1],
+                "431",
+                [
+                    "",
+                    function ($v, $a, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 2) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $a . $v;
+                        }
+                    }
+                ]
+            ]
         ];
     }
 
@@ -635,6 +1317,39 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[1, 2, 3], [2], ['$k === 1']],
             [[1, 2, 3], [], ['$v === 8']],
             [[1, 2, 3], [3], ['$i === 2']],
+            [
+                [1, 2, 4, 3, 7],
+                [1],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 3) {
+                            throw new Stop();
+                        }
+
+                        return $v % 2;
+                    }
+                ]
+            ],
+            [
+                [1, 2, 4, 3, 7],
+                [1, 7],
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 3) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v % 2;
+                        }
+                    }
+                ]
+            ],
         ];
     }
 
@@ -644,6 +1359,40 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[1], [[1]], [null]],
             [[1, 2, 3, 5, 8, 13, 21, 34], [[1], [2], [3, 5, 8, 13], [21], [34]], ['^[12]']],
             [[1, 2, 3, 5, 8, 13, 21, 34], [[1], [2, 3], [5], [8, 13], [21], [34]], ['$v % 2', Enumerable::$ENABLE_EVAL]],
+            [[1, 2, 3, 5, 8, 13, 21, 34], [[1], [2], [3, 5, 8, 13], [21], [34]], ['^[12]']],
+            [
+                [1, 2, 3, 5, 8, 13, 21, 34],
+                [[1], [2], [3]],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 3) {
+                            throw new Stop();
+                        }
+
+                        return preg_match('#^[12]#', $v);
+                    }
+                ]
+            ],
+            [
+                [1, 2, 3, 5, 8, 13, 21, 34],
+                [[1], [2], [3, 8, 13], [21], [34]],
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 3) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return preg_match('#^[12]#', $v);
+                        }
+                    }
+                ]
+            ],
         ];
     }
 
@@ -685,6 +1434,39 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [[5, 7, 8, 13], [], ["null"]],
             [[5, 7, 8, 13], [5, 7], ['$v % 2']],
             [[5, 7, 8, 13], [], ['$v < 4']],
+            [
+                [5, 7, 8, 13],
+                [5, 7],
+                [
+                    function($v, $k, $i) {
+                        if ($i === 2) {
+                            throw new Stop();
+                        }
+
+                        return $v < 10;
+                    }
+                ]
+            ],
+            [
+                [5, 7, 8, 13],
+                [5, 8],
+                [
+                    function($v, $k, $i) {
+                        static $prev_i = [];
+
+                        if ($i === 1) {
+                            throw new Next();
+                        }
+
+                        if (in_array($i, $prev_i)) {
+                            throw new \LogicException();
+                        } else {
+                            $prev_i[] = $i;
+                            return $v < 10;
+                        }
+                    }
+                ]
+            ],
         ];
     }
 
@@ -741,7 +1523,8 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
             [
                 ['X' => 1, 'Y' => 2],
                 [['X' => 1, 10 => 'A'], ['Y' => 'B'], [null => null, 'Z' => 'C']],
-                [[[10 => 'A', 'Y' => 'B', 'Z' => 'C']], Enumerable::$PRESERVE_KEYS]],
+                [[[10 => 'A', 'Y' => 'B', 'Z' => 'C']], Enumerable::$PRESERVE_KEYS]
+            ],
         ];
     }
 
@@ -1030,7 +1813,7 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
      * @param $args
      */
     function testCollect($input, $expected, $args) {
-        $this->assertSame($expected,iterator_to_array(self::wrap($input)->collect(...$args)));
+        $this->assertSame($expected, iterator_to_array(self::wrap($input)->collect(...$args)));
     }
 
     /**
@@ -1072,7 +1855,10 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     function testCycle($input, $expected, $args) {
         $caseResult = [];
 
-        self::wrap($input)->cycle($args[0], function($v, $k, $i) use (&$caseResult) {
+        self::wrap($input)->cycle($args[0], function($v, $k, $i) use (&$caseResult, $args) {
+            if (isset($args[1])) {
+                call_user_func($args[1], $v, $k, $i);
+            }
             $caseResult[] = [$v, $k, $i];
         });
 
@@ -1119,7 +1905,10 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     function testEach($input, $expected, $args) {
         $caseResult = [];
 
-        self::wrap($input)->each(function($v, $k, $i) use (&$caseResult) {
+        self::wrap($input)->each(function($v, $k, $i) use (&$caseResult, $args) {
+            if (isset($args[0])) {
+                call_user_func($args[0], $v, $k, $i);
+            }
             $caseResult[] = [$v, $k, $i];
         });
 
@@ -1135,7 +1924,10 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     function testEachCons($input, $expected, $args) {
         $caseResult = [];
 
-        self::wrap($input)->each_cons($args[0], function($v, $i) use (&$caseResult) {
+        self::wrap($input)->each_cons($args[0], function($v, $i) use (&$caseResult, $args) {
+            if (isset($args[1])) {
+                call_user_func($args[1], $v, $i);
+            }
             $caseResult[] = [$v, $i];
         });
 
@@ -1151,7 +1943,10 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     function testEachEntry($input, $expected, $args) {
         $caseResult = [];
 
-        self::wrap($input)->each_entry(function($v, $k, $i) use (&$caseResult) {
+        self::wrap($input)->each_entry(function($v, $k, $i) use (&$caseResult, $args) {
+            if (isset($args[0])) {
+                call_user_func($args[0], $v, $k, $i);
+            }
             $caseResult[] = [$v, $k, $i];
         });
 
@@ -1159,7 +1954,7 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @dataProvider caseProviderEach
+     * @dataProvider caseProviderEachGlobals
      * @param $input
      * @param $expected
      * @param $args
@@ -1167,7 +1962,19 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     function testEachGlobals($input, $expected, $args) {
         $GLOBALS['caseResult'] = [];
 
-        self::wrap($input)->each('$GLOBALS["caseResult"][] = [$v, $k, $i]');
+        $wrappee = self::wrap($input);
+
+        $wrappee->each(function($v, $k, $i) use ($args, $wrappee) {
+            if (isset($args[0])) {
+                if (is_callable($args[0])) {
+                    call_user_func($args[0], $v, $k, $i);
+                } else {
+                    $fn = self::invoke_create_lambda($wrappee, [$args[0], false]);
+                    $fn($v, $k, $i);
+                }
+            }
+            $GLOBALS["caseResult"][] = [$v, $k, $i];
+        });
 
         $this->assertSame($expected, $GLOBALS['caseResult']);
     }
@@ -1181,7 +1988,10 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     function testEachSlice($input, $expected, $args) {
         $caseResult = [];
 
-        self::wrap($input)->each_slice($args[0], function($v, $i) use (&$caseResult) {
+        self::wrap($input)->each_slice($args[0], function($v, $i) use (&$caseResult, $args) {
+            if (isset($args[1])) {
+                call_user_func($args[1], $v, $i);
+            }
             $caseResult[] = [$v, $i];
         });
 
@@ -1197,7 +2007,10 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     function testEachWithIndex($input, $expected, $args) {
         $caseResult = [];
 
-        self::wrap($input)->each_with_index(function($v, $k, $i) use (&$caseResult) {
+        self::wrap($input)->each_with_index(function($v, $k, $i) use (&$caseResult, $args) {
+            if (isset($args[0])) {
+                call_user_func($args[0], $v, $k, $i);
+            }
             $caseResult[] = [$v, $k, $i];
         });
 
@@ -1213,8 +2026,11 @@ class EnumerableTest extends \PHPUnit_Framework_TestCase {
     function testEachWithObject($input, $expected, $args) {
         $caseResult = [];
 
-        $caseObject = self::wrap($input)->each_with_object($args[0], function($v, $k, $i, $o) use (&$caseResult) {
-            $caseResult[] = [$v, $k, $i, $o];
+        $caseObject = self::wrap($input)->each_with_object($args[0], function($v, $o, $k, $i) use (&$caseResult, $args) {
+            if (isset($args[1])) {
+                call_user_func($args[1], $v, $o, $k, $i);
+            }
+            $caseResult[] = [$v, $o, $k, $i];
         });
 
         $this->assertSame($expected, $caseResult);
